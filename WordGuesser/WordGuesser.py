@@ -7,7 +7,10 @@ from typing import List, Set
 class WordGuesser():
     def __init__(self, language: str):
         self._dictionary = self.__load_dict__(language)
-        self._prefixes = set([word[:i] for word in self._dictionary for i in range(1, len(word))])
+        self._prefixes = {
+            word[:i] for word in self._dictionary for i in range(1, len(word))
+        }
+
         self._solutions = []
         self._letter_count = {}
         self._distinct_letters = set()
@@ -28,9 +31,15 @@ class WordGuesser():
 
 
     def __recursive_search__(self, solution: str, length: int, exact_length: bool) -> None:
-        if (exact_length and len(solution) == length) or (not exact_length and len(solution) <= length):
-            if len(solution) > 1 and solution in self._dictionary:
-                self._solutions.append(solution)
+        if (
+            (
+                (exact_length and len(solution) == length)
+                or (not exact_length and len(solution) <= length)
+            )
+            and len(solution) > 1
+            and solution in self._dictionary
+        ):
+            self._solutions.append(solution)
         if len(solution) < length:
             for c in self._distinct_letters:
                 if self.__check__(solution, c):
@@ -42,9 +51,10 @@ class WordGuesser():
     def __check__(self, current_solution: str, c: str) -> bool:
         if current_solution.count(c) >= self._letter_count[c]:
             return False
-        if current_solution + c not in self._prefixes and current_solution + c not in self._dictionary:
-            return False
-        return True
+        return (
+            current_solution + c in self._prefixes
+            or current_solution + c in self._dictionary
+        )
 
 
     @staticmethod
